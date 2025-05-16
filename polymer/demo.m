@@ -1,92 +1,90 @@
-%% MSD蒙特卡洛模拟, 不要用自己的电脑直接运行，很慢很慢
 clc
 clear
 close all
-T=1000:100:4000;
-tau=1e-1; 
-alpha=0.5;
-n_min=3; 
-D0=1; 
-lambda=1;
-mu=1;
-arg=1;
-power_expanding = @(t,r) (t+1).^r;  % 幂律扩张(arg对应于参数r)
-exp_expanding = @(t,H) e.^(-H*t);   % 指数扩张(arg对应于参数H)
 
-% M = 1d5;
-% MSD = zeros(length(T),1);
-% 
-% for k=1:length(T)
-%     % 幂律扩张
-% MSD = msdExpanding(M, 100, power_expanding, tau, alpha, n_min, D0, lambda, mu, arg);
-%     % 指数扩张
-%     % MSD(k) = msdExpanding(M, T(k), exp_expanding, tau, alpha, n_min, D0, lambda, mu, arg);
-% end
+n = 1000;                    % 单体数量
+len = 1;                     % 单体长度，对于高斯链是平均长度
+theta = pi/3;                % 自由旋转链的键角
+wl_theta = pi/10000;         % 蠕虫状链的键角，远小于1
 
-load power-expanding-r-01.mat
-loglog(tt, m, 'o')
-clear
-load power-expanding-r-02.mat
-hold on
-loglog(tt, m, '>')
-clear 
-load power-expanding-r-03.mat
-hold on
-loglog(tt, m, '<')
-clear 
-load power-expanding-r-04.mat
-hold on
-loglog(tt, m, '^')
-clear 
-load power-expanding-r-05.mat
-hold on
-loglog(tt, m, '*')
-clear 
-load power-expanding-r-06.mat
-hold on
-loglog(tt, m, 's')
-clear 
-load power-expanding-r-07.mat
-hold on
-loglog(tt, m, 'd')
-clear 
-load power-expanding-r-08.mat
-hold on
-loglog(tt, m, '.')
-clear 
-load power-expanding-r-09.mat
-hold on
-loglog(tt, m, 'p')
-clear 
-load power-expanding-r-10.mat
-hold on
-loglog(tt, m, 'h')
-hold on
-loglog(tt, 1.3*tt, '-')
-hold on
-loglog(tt, 0.9*tt.^1.2, '-')
-hold on
-loglog(tt, 0.8*tt.^1.4, '-')
-hold on
-loglog(tt, 0.6*tt.^1.6, '-')
-hold on
-loglog(tt, 0.5*tt.^1.8, '-')
-hold on
-loglog(tt, 0.4*tt.^2, '-')
+r1 = fjc(len, n);            % 自由连接链
+r2 = frc(theta, len, n);     % 自由旋转链
+r3 = frc(wl_theta, len, n);  % 蠕虫状链，即自由旋转链键角充分小的情况
+r4 = gc(len, n);             % 高斯链，即每个单体独立同分布，三元高斯分布
 
-txt1 = 'slope=1.0';
-text(tt(10), 1.8*tt(10), txt1, 'Fontsize', 14)
-txt2 = 'slope=1.2';
-text(tt(10), 1.3*tt(10)^1.2, txt2, 'Fontsize', 14)
-txt3 = 'slope=1.4';
-text(tt(10), 1.2*tt(10)^1.4, txt3, 'Fontsize', 14)
-txt4 = 'slope=1.6';
-text(tt(10), 0.9*tt(10)^1.6, txt4, 'Fontsize', 14)
-txt5 = 'slope=1.8';
-text(tt(10), 0.7*tt(10)^1.8, txt5, 'Fontsize', 14)
-txt6 = 'slope=2.0';
-text(tt(10), 0.6*tt(10)^2, txt6, 'Fontsize', 14)
+tn = ["Freely Jointed Chain" "Freely Rotating Chain" ...
+    "Worm-like Chain" "Gaussian Chain"];
+fn = tn + ".gif";
 
+plotgif(r1, fn(1), tn(1))
+plotgif(r2, fn(2), tn(2), 10)
+plotgif(r3, fn(3), tn(3), 10)
+plotgif(r4, fn(4), tn(4), 10)
 
-legend('\gamma=0.1','\gamma=0.2','\gamma=0.3','\gamma=0.4','\gamma=0.5', ...
-       '\gamma=0.6','\gamma=0.7','\gamma=0.8','\gamma=0.9','\gamma=1.0', 'Location','bestoutside')
+if 1==2
+    r1_end2end = [r1(1, :); r1(end, :)];
+    r2_end2end = [r2(1, :); r2(end, :)];
+    r3_end2end = [r3(1, :); r3(end, :)];
+    r4_end2end = [r4(1, :); r4(end, :)];
+    figure()
+    subplot(2,2,1)
+    plot3(r1(:,1), r1(:,2), r1(:,3))
+    hold on
+    plot3(r1_end2end(:, 1), r1_end2end(:, 2), r1_end2end(:, 3), 'o-')
+    title('Freely Jointed Chain')
+    str1 = ["monomer's number n = ", num2str(n), ...
+        "monomer's length b = ", num2str(len)];
+    dim1 = [0.1,0.8,0.3,0.2];
+    annotation('textbox',dim1,'String',str1,'FitBoxToText','on');
+    legend(["chain", "end to end vector"], 'Location', 'northeast')
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    grid on
+    
+    subplot(2,2,2)
+    plot3(r2(:,1), r2(:,2), r2(:,3))
+    hold on
+    plot3(r2_end2end(:, 1), r2_end2end(:, 2), r2_end2end(:, 3), 'o-')
+    title("Freely Rotating Chain")
+    str2 = ["monomer's number n = ", num2str(n), ...
+        "monomer's length b = ", num2str(len), ...
+        "bond angle \theta = ", num2str(theta)];
+    dim2 = [0.8,0.8,0.3,0.2];
+    annotation('textbox',dim2,'String',str2,'FitBoxToText','on');
+    legend(["chain", "end to end vector"], 'Location', 'northwest')
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    grid on
+    
+    subplot(2,2,3)
+    plot3(r3(:,1), r3(:,2), r3(:,3))
+    hold on
+    plot3(r3_end2end(:, 1), r3_end2end(:, 2), r3_end2end(:, 3), 'o-')
+    title('Worm-like Chain')
+    str1 = ["monomer's number n = ", num2str(n), ...
+        "monomer's length b = ", num2str(len)];
+    dim3 = [0.1,0.3,0.3,0.2];
+    annotation('textbox',dim3,'String',str1,'FitBoxToText','on');
+    legend(["chain", "end to end vector"], 'Location', 'northeast')
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    grid on
+    
+    subplot(2,2,4)
+    plot3(r4(:,1), r4(:,2), r4(:,3))
+    hold on
+    plot3(r4_end2end(:, 1), r4_end2end(:, 2), r4_end2end(:, 3), 'o-')
+    title('Gaussian Chain')
+    str1 = ["monomer's number n = ", num2str(n), ...
+        "monomer's average length b = ", num2str(len)];
+    dim4 = [0.8,0.3,0.3,0.2];
+    annotation('textbox',dim4,'String',str1,'FitBoxToText','on');
+    legend(["chain", "end to end vector"], 'Location', 'northwest')
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    grid on
+end
